@@ -12,10 +12,12 @@ import json
 class DoubanSpider:
     def __init__(self):
         self.start_url_temp_list = [
-            'https://m.douban.com/rexxar/api/v2/subject_collection/tv_american/items?os=ios&for_mobile=1&callback=jsonp1&start=0&count={}&loc_id=108288&_=0',
-            '',
-            ''
-            ]
+            {
+                'url_tem': 'https://m.douban.com/rexxar/api/v2/subject_collection/tv_american/items?os=ios&for_mobile=1&callback=jsonp1&start=0&count={}&loc_id=108288&_=0',
+                'country': 'US'},
+            {'url_tem': '', 'country': 'UK'},
+            {'url_tem': '', 'country': 'CN'}
+        ]
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'}
 
@@ -32,10 +34,11 @@ class DoubanSpider:
         total = dict_ret['total']
         return content_list, total
 
-    def save_content_list(self, content_list):
+    def save_content_list(self, content_list, country):
         # 注意这里打开文件在上面，这样的作用是可以减少IO次数，从而加快速度
         with open('douban.txt', 'a', encoding='utf-8') as f:
             for content in content_list:
+                content['country'] = country
                 f.write(json.dumps(content, ensure_ascii=False))
                 # 写入换行符，进行换行
                 f.write('\n')
@@ -47,13 +50,13 @@ class DoubanSpider:
             total = 100  # 假设有第一页，这里需要一个假数字
             # 1. start url
             while num < total + 18:
-                url = url_temp.format(num)
+                url = url_temp['url_temp'].format(num)
                 # 2. 发送请求，获取响应
                 json_str = self.parse_url(url)
                 # 3. 提取数据
                 content_list, total = self.get_content_list(json_str)
                 # 4. 保存
-                self.save_content_list(content_list)
+                self.save_content_list(content_list, url_temp['country'])
                 # if len(content_list) < 18:
                 #     break
                 # 5. 构造下一页的url地址，进入循环
